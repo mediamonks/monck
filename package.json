@@ -1,6 +1,6 @@
 {
   "name": "@mediamonks/monck",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Add highly configurable API mocks to your express server",
   "keywords": ["mock", "express", "middleware"],
   "repository": "git@github.com:mediamonks/monck.git",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/esm/index..d.ts",
+  "types": "dist/esm/index.d.ts",
   "files": [
     "dist"
   ],
