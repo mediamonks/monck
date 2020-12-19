@@ -31,7 +31,10 @@ export function createServer(serverOptions: ServerOptions = {}): Express {
   const app = express();
   app.use(mountPath, createMockMiddleWare(mockDir, options));
 
-  // specifically for monkapps
+  // return 404 response to unmatched routes under the mount path
+  app.use(mountPath, (req, res) => res.sendStatus(404));
+
+
   if (useUnixSocket) {
     // clean up previous socket connection
     if (fs.existsSync(socketPath)) {
