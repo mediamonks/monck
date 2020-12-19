@@ -206,7 +206,7 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
     const match = matchMock(req);
 
     if (req.path === '/') {
-      res.send(`
+      return res.send(`
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
       <div style="padding: 20px;">
         <h3>Overview of available mock APIs</h3>
