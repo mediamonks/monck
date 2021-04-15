@@ -229,11 +229,11 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
         </div>`)
     }
 
-    // if (match) {
-    //   debug(`mock matched: [${match.method}] ${match.path}`);
-    //   return match.handler(req, res, next);
-    // } else {
+    if (match) {
+      debug(`mock matched: [${match.method}] ${match.path}`);
+      return match.handler(req, res, next);
+    } else {
       return next();
-    // }
+    }
   };
 }

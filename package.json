@@ -1,6 +1,6 @@
 {
   "name": "@mediamonks/monck",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "description": "Add highly configurable API mocks to your express server",
   "keywords": ["mock", "express", "middleware"],
   "repository": "git@github.com:mediamonks/monck.git",
