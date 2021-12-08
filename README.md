@@ -42,8 +42,8 @@ const app = createServer({
   host: 'localhost',
   port: '9002',
   useUnixSocket: false,
-  socketPath: resolve(__dirname, './socket'), // default = resolve(process.cwd(), './socket')
-  mockDir: path.resolve(__dirname, './mocks'), // default = resolve(process.cwd(), './mocks')
+  socketPath: path.resolve(__dirname, './socket'), // default = path.resolve(process.cwd(), './socket')
+  mockDir: path.resolve(__dirname, './mocks'), // default = path.resolve(process.cwd(), './mocks')
   ignore: ['*.sample.js'], // default = []
 });
 ```
@@ -51,7 +51,6 @@ const app = createServer({
 Or use the middleware in your existing server
 
 ```js
-import path from 'path';
 import express from 'express'
 
 import { createMockMiddleWare } from '@mediamonks/monck';
