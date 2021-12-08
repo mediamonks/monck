@@ -12,15 +12,23 @@ import typedObjectKeys from './type-utils/typedObjectKeys';
 
 // const VALID_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head'];
 const BODY_PARSED_METHODS = ['post', 'put', 'patch', 'delete'];
+const USE_ESM = typeof require === 'undefined';
 
-const debug = require('debug')('monck');
-
+import debugLib from 'debug';
+const debug = debugLib('monck');
 
 export type MockOptions = {
   ignore?: string | Array<string>;
 };
 
 type RequestMethod = 'all' | 'get' | 'post' | 'put' | 'delete' | 'patch' | 'options' | 'head';
+type MockConfig = {
+  method: RequestMethod;
+  path: string;
+  re: RegExp;
+  keys: Array<Key>;
+  handler: RequestHandler;
+};
 
 export type RequestConfig = Record<string, RequestHandler | Record<string, any>>;
 
@@ -28,7 +36,7 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
   const absMockPath = mockDir ?? resolve(process.cwd(), './mocks');
   const errors: Array<Error> = [];
 
-  let mockData = getConfig();
+  let mockDataPromise = getConfig();
   watch();
 
   function watch() {
@@ -38,43 +46,45 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
     });
     watcher.on('all', (event, file) => {
       debug(`[${event}] ${file}, reload mock data`);
-      mockData = getConfig();
+      mockDataPromise = getConfig();
       if (!errors.length) {
         signale.success(`Mock file parse success`);
       }
     });
   }
 
-  function getConfig() {
+  async function getConfig(): Promise<Array<MockConfig>> {
     // Clear errors
     errors.splice(0, errors.length);
 
     cleanRequireCache();
     let ret = {};
     const mockFiles = glob
-      .sync('**/*.[jt]s', {
+      .sync('**/*.@(cjs|mjs|js|ts)', {
         cwd: absMockPath,
         ignore: (options || {}).ignore || [],
       })
       .map((p) => join(absMockPath, p));
     debug(`load mock data from ${absMockPath}, including files ${JSON.stringify(mockFiles)}`);
     try {
-      ret = mockFiles.reduce((memo, mockFile) => {
-        const m = require(mockFile); // eslint-disable-line
-        memo = {
-          ...memo,
-          ...(m.default || m),
-        };
-        return memo;
-      }, {});
-    } catch (e) {
-      errors.push(e);
-      signale.error(`Mock file parse failed: ${e.message}`);
+      ret = (
+        await Promise.all(
+          mockFiles.map(async (mockFile) => {
+            const module = await (USE_ESM
+              ? import(`${mockFile}?cache=${Math.random()}`)
+              : require(mockFile));
+            return module.default || module;
+          }),
+        )
+      ).reduce((obj, config) => ({ ...obj, ...config }), {});
+    } catch (e: unknown) {
+      errors.push(e as Error);
+      signale.error(`Mock file parse failed: ${(e as Error).message}`);
     }
     return normalizeConfig(ret);
   }
 
-  function parseKey(key: string): { method: RequestMethod, path:  string} {
+  function parseKey(key: string): { method: RequestMethod; path: string } {
     let method = 'get' as RequestMethod;
     let path = key;
     if (key.indexOf(' ') > -1) {
@@ -93,7 +103,11 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
     };
   }
 
-  function createHandler(method: RequestMethod, path: string, handler: RequestHandler | Record<string, any>) {
+  function createHandler(
+    method: RequestMethod,
+    path: string,
+    handler: RequestHandler | Record<string, any>,
+  ) {
     return function (req: Request, res: Response, next: NextFunction) {
       if (BODY_PARSED_METHODS.includes(method)) {
         bodyParser.json({ limit: '5mb', strict: false })(req, res, () => {
@@ -123,7 +137,7 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
       const type = typeof handler;
       assert(
         type === 'function' || type === 'object',
-        `mock value of ${key} should be function or object, but got ${type}`
+        `mock value of ${key} should be function or object, but got ${type}`,
       );
       const { method, path } = parseKey(key);
       const keys: Array<Key> = [];
@@ -140,18 +154,20 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
         handler: createHandler(method, path, handler),
       });
       return memo;
-    }, [] as Array<{ method: RequestMethod; path: string; re:RegExp; keys: Array<Key>; handler: RequestHandler }>);
+    }, [] as Array<{ method: RequestMethod; path: string; re: RegExp; keys: Array<Key>; handler: RequestHandler }>);
   }
 
   function cleanRequireCache() {
-    Object.keys(require.cache).forEach((file) => {
-      if (file.indexOf(absMockPath) > -1) {
-        delete require.cache[file];
-      }
-    });
+    if (!USE_ESM) {
+      Object.keys(require.cache).forEach((file) => {
+        if (file.indexOf(absMockPath) > -1) {
+          delete require.cache[file];
+        }
+      });
+    }
   }
 
-  function matchMock(req: Request) {
+  function matchMock(req: Request, mockData: Array<MockConfig>) {
     const targetPath = req.path;
     const targetMethod = req.method.toLowerCase();
     // debug(`${targetMethod} ${targetPath}`);
@@ -202,8 +218,9 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
     })[0];
   }
 
-  return function mockMiddleware(req: Request, res: Response, next: NextFunction) {
-    const match = matchMock(req);
+  return async function mockMiddleware(req: Request, res: Response, next: NextFunction) {
+    const mockData = await mockDataPromise;
+    const match = matchMock(req, mockData);
 
     if (req.path === '/') {
       return res.send(`
@@ -211,22 +228,27 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
       <div style="padding: 20px;">
         <h3>Overview of available mock APIs</h3>
         <ul style="list-style-type: none; padding-left: 0;">
-        ${mockData.map(mock => {
-          const fullPath = `/api${mock.path}`;
-          const mockMethod = mock.method.toUpperCase();
-          return `<li><a href="${fullPath}">
+        ${mockData
+          .map((mock) => {
+            const fullPath = `/api${mock.path}`;
+            const mockMethod = mock.method.toUpperCase();
+            return `<li><a href="${fullPath}">
           ${mock.method === 'get' ? `<span class="badge badge-success">${mockMethod}</span>` : ''}
           ${mock.method === 'post' ? `<span class="badge badge-primary">${mockMethod}</span>` : ''}
           ${mock.method === 'delete' ? `<span class="badge badge-danger">${mockMethod}</span>` : ''}
           ${mock.method === 'put' ? `<span class="badge badge-info">${mockMethod}</span>` : ''}
           ${mock.method === 'patch' ? `<span class="badge badge-info">${mockMethod}</span>` : ''}
-          ${!['get', 'post', 'delete', 'put', 'patch'].includes(mock.method) ? `<span class="badge badge-secondary">${mockMethod}</span>` : ''}
+          ${
+            !['get', 'post', 'delete', 'put', 'patch'].includes(mock.method)
+              ? `<span class="badge badge-secondary">${mockMethod}</span>`
+              : ''
+          }
            ${fullPath}
-        </a></li>`
-        }).join('')
-      }
+        </a></li>`;
+          })
+          .join('')}
         </ul>
-        </div>`)
+        </div>`);
     }
 
     if (match) {

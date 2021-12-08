@@ -5,7 +5,8 @@ Add highly configurable API mocks to your express server
 ## Status
 
 This is the first iteration of this module, inspired by
-[express-mock-api-middleware](https://github.com/TechStark/express-mock-api-middleware).
+[express-mock-api-middleware](https://github.com/TechStark/express-mock-api-middleware), and 
+made compatible for esmodules.
 
 Future versions will receive these additional features:
 
@@ -94,6 +95,34 @@ added as routes to the server/middleware. Each route key is defined as `"[method
 The value of each key is either an `object` - which is directly returned as-is, or an express `RequestHandler` that 
 is executed and allows you to fabricate your own response using `res.send()`.
 
+### TypeScript and ESM support
+
+Since monck needs to load and execute your files at runtime, it's your responsibility to make 
+sure these files can be loaded the correct way.
+
+If you want to load TypeScript files, you need to transpile those files first, or make use of 
+something like [ts-node](https://github.com/TypeStrong/ts-node) or
+[tsm](https://github.com/lukeed/tsm) to use them during development.
+
+If you want to make use of ES modules, you need to make sure that your package.json or your file 
+extensions [are properly set up](https://nodejs.org/api/esm.html).
+
+A combination of the both requires that both configurations are perfectly in sync.
+
+* tsconfig
+  * `"module": "ESNext"`
+  * `"moduleResolution": "node"`
+  * `"esModuleInterop": true`
+* package.json
+  * `"type": "module"`
+  * or, your file extension set to `.mjs`
+* running
+  * for TS/commonjs, using `ts-node file.ts` should be enough
+  * For TS/ESM, use node with experimental features; `node 
+    --experimental-specifier-resolution=node --loader ts-node/esm file.ts`
+
+### Example file
+
 ```ts
 // mocks/user.ts
 
@@ -145,3 +174,10 @@ Set the `DEBUG` environment variable to see debug logs from this module.
 ```sh
 DEBUG=monck
 ```
+
+## Development
+
+The default setup is using esm/typescript, and can be seen by running `yarn dev`.
+
+In order to run the commonjs version (`yarn test:cjs`), the `type` field inside the `package.
+json` has to be removed first.

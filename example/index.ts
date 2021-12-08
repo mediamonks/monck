@@ -1,7 +1,8 @@
 import path from 'path';
-import { createServer } from '../src';
+import { URL } from 'url';
+import { createServer } from '../src/index';
 
 createServer({
-  mockDir: path.resolve(__dirname, './mocks'),
-  useUnixSocket: process.env.NODE_ENV === 'production'
+  mockDir: path.resolve(new URL('.', import.meta.url).pathname, './mocks'),
+  useUnixSocket: process.env.NODE_ENV === 'production',
 });
