@@ -8,7 +8,7 @@ import chokidar from 'chokidar';
 import { Key, pathToRegexp } from 'path-to-regexp';
 import signale from 'signale';
 import multer from 'multer';
-import typedObjectKeys from './type-utils/typedObjectKeys';
+import typedObjectKeys from './type-utils/typedObjectKeys.js';
 
 // const VALID_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head'];
 const BODY_PARSED_METHODS = ['post', 'put', 'patch', 'delete'];

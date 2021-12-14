@@ -1,21 +1,21 @@
 import fs from 'fs';
-import type { Express, RequestHandler } from 'express'
-import express from 'express'
+import type { Express, RequestHandler } from 'express';
+import express from 'express';
 import { resolve } from 'path';
-import getMockMiddleware from './createMockMiddleware';
+import getMockMiddleware from './createMockMiddleware.js';
 // @ts-ignore
-import type { MockOptions } from './createMockMiddleware';
+import type { MockOptions } from './createMockMiddleware.js';
 
-export type { RequestConfig} from './createMockMiddleware'
+export type { RequestConfig } from './createMockMiddleware.js';
 
 export type ServerOptions = MockOptions & {
-  mountPath?: string,
+  mountPath?: string;
   useUnixSocket?: boolean;
   socketPath?: string;
-  host?: string,
-  port?: number,
-  mockDir?: string,
-}
+  host?: string;
+  port?: number;
+  mockDir?: string;
+};
 
 const DEFAULT_SERVER_OPTIONS: Required<Omit<ServerOptions, 'mockDir' | keyof MockOptions>> = {
   mountPath: '/api/',
@@ -23,17 +23,19 @@ const DEFAULT_SERVER_OPTIONS: Required<Omit<ServerOptions, 'mockDir' | keyof Moc
   port: 9002,
   useUnixSocket: false,
   socketPath: resolve(process.cwd(), './socket'),
-}
+};
 
 export function createServer(serverOptions: ServerOptions = {}): Express {
-  const { mountPath, mockDir, socketPath, useUnixSocket, host, port, ...options } = {...DEFAULT_SERVER_OPTIONS, ...serverOptions};
+  const { mountPath, mockDir, socketPath, useUnixSocket, host, port, ...options } = {
+    ...DEFAULT_SERVER_OPTIONS,
+    ...serverOptions,
+  };
 
   const app = express();
   app.use(mountPath, createMockMiddleWare(mockDir, options));
 
   // return 404 response to unmatched routes under the mount path
   app.use(mountPath, (req, res) => res.sendStatus(404));
-
 
   if (useUnixSocket) {
     // clean up previous socket connection
