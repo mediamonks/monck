@@ -29,7 +29,8 @@
     "test:cjs": "npm run build; node example/index.cjs.js",
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "tsc -p tsconfig.build.cjs.json",
-    "build:esm": "tsc -p tsconfig.build.esm.json"
+    "build:esm": "tsc -p tsconfig.build.esm.json",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@types/body-parser": "1.19.0",
