@@ -19,6 +19,7 @@ const debug = debugLib('monck');
 
 export type MockOptions = {
   ignore?: string | Array<string>;
+  mountPath?: string;
 };
 
 type RequestMethod = 'all' | 'get' | 'post' | 'put' | 'delete' | 'patch' | 'options' | 'head';
@@ -32,7 +33,7 @@ type MockConfig = {
 
 export type RequestConfig = Record<string, RequestHandler | Record<string, any>>;
 
-export default function getMockMiddleware(mockDir?: string, options?: MockOptions) {
+export default function getMockMiddleware(mockDir?: string, options: MockOptions = {}) {
   const absMockPath = resolve(process.cwd(), mockDir ?? './mocks');
   const errors: Array<Error> = [];
 
@@ -62,7 +63,7 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
     const mockFiles = glob
       .sync('**/*.@(cjs|mjs|js|ts)', {
         cwd: absMockPath,
-        ignore: (options || {}).ignore || [],
+        ignore: options.ignore || [],
       })
       .map((p) => join(absMockPath, p));
     debug(`load mock data from ${absMockPath}, including files ${JSON.stringify(mockFiles)}`);
@@ -230,7 +231,7 @@ export default function getMockMiddleware(mockDir?: string, options?: MockOption
         <ul style="list-style-type: none; padding-left: 0;">
         ${mockData
           .map((mock) => {
-            const fullPath = `/api${mock.path}`;
+            const fullPath = `${options.mountPath}${mock.path}`;
             const mockMethod = mock.method.toUpperCase();
             return `<li><a href="${fullPath}">
           ${mock.method === 'get' ? `<span class="badge badge-success">${mockMethod}</span>` : ''}
