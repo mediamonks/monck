@@ -33,7 +33,7 @@ type MockConfig = {
 export type RequestConfig = Record<string, RequestHandler | Record<string, any>>;
 
 export default function getMockMiddleware(mockDir?: string, options?: MockOptions) {
-  const absMockPath = mockDir ?? resolve(process.cwd(), './mocks');
+  const absMockPath = resolve(process.cwd(), mockDir ?? './mocks');
   const errors: Array<Error> = [];
 
   let mockDataPromise = getConfig();
