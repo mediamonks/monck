@@ -19,13 +19,18 @@
   },
   "types": "dist/esm/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
+  "bin": {
+    "monck": "./bin/monck.js"
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "dev": "nodemon --ext ts --exec 'tsm' example/index.ts",
+    "dev:cli": "tsc -p tsconfig.build.esm.json --watch",
     "test:cjs": "npm run build; node example/index.cjs.js",
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "tsc -p tsconfig.build.cjs.json",
@@ -44,6 +49,7 @@
     "@types/qs": "6.9.6",
     "@types/serve-static": "1.13.9",
     "@types/signale": "1.4.1",
+    "@types/yargs": "^17.0.8",
     "asset": "^0.4.13",
     "body-parser": "^1.19.0",
     "chokidar": "^3.4.3",
@@ -51,7 +57,8 @@
     "glob": "^7.1.6",
     "multer": "^1.4.2",
     "path-to-regexp": "^6.2.0",
-    "signale": "^1.4.0"
+    "signale": "^1.4.0",
+    "yargs": "^17.3.1"
   },
   "devDependencies": {
     "@types/faker": "^5.1.5",
@@ -62,7 +69,6 @@
     "typescript": "^4.6.0-dev.20211214"
   },
   "engines": {
-    "npm": ">= 7.0.0",
-    "yarn": "please use npm"
+    "npm": ">= 7.0.0"
   }
 }

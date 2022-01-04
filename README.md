@@ -86,7 +86,42 @@ Middleware options:
 * `ignore?: string | Array<string>` - Add a pattern or an array of glob patterns to exclude matches. Note: ignore 
   patterns are _always_ in `dot:true` mode, regardless of any other settings - (See how to use ignore in options
   [options](https://github.com/isaacs/node-glob#options)).
-  
+
+## CLI usage
+
+Monck also provides a CLI that allows you to start the mock server without any node scripts 
+required.
+
+```
+Usage: monck [options]
+
+Server:
+  -m, --mount-path   On what path the mock API should be mounted. All configured mock endpoints will be prefixed by this
+                      path                                                                        [string] [default: ""]
+  -h, --host         The host that will be used to run the server, passed to `app.listen`                       [string]
+  -p, --port         The port that will be used to run the server, passed to `app.listen`                       [number]
+  -u, --unix-socket  Whether to use a unix socket to start the server instead of the default `host:port`.      [boolean]
+  -s, --socket-path  Where to create the unix socket. Only needed when `unix-socket` is true.                   [string]
+
+Middleware:
+  -d, --mock-dir  Where the mock config files can be found                                                      [string]
+  -i, --ignore    Add a glob pattern to exclude matches. Note: ignore patterns are always in `dot:true` mode, regardless
+                   of any other settings                                                                        [string]
+
+Options:
+      --help  Show help                                                                                        [boolean]
+
+Examples:
+  monck                       Start a server on default host and port.
+  monck -h localhost -p 9002  Start a server on a specific host and port
+  monck -u -s ./monck-socket  Start a server connected to the socket at that location
+  monck -m api                Make all mock routes available on the "api/" path.
+  monck -d ./mocks            Specify a folder where the mock files are located.
+  monck -i "*.sample.js"      Ignore sample files in the mock folder.
+
+for more information about the parameters, please visit https://github.com/mediamonks/monck
+```
+
 ## Mock configuration
 
 All files in the configured `mock` directly will be required and watched for changes. The exported object keys will be 
