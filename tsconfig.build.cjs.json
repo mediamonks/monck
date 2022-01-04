@@ -7,6 +7,9 @@
     "declaration": true,
   },
   "include": [
-    "src/**/*.ts"
+    "src/index-cjs.ts"
+  ],
+  "exclude": [
+    "src/index-esm.ts"
   ]
 }

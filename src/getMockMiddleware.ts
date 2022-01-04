@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import type { NextFunction, Request, Response, ParamsDictionary } from 'express-serve-static-core';
-import { join, resolve } from 'path';
+import { join, resolve, extname } from 'path';
+import { readFile } from 'fs/promises';
 import bodyParser from 'body-parser';
 import glob from 'glob';
 import assert from 'assert';
@@ -8,11 +9,11 @@ import chokidar from 'chokidar';
 import { Key, pathToRegexp } from 'path-to-regexp';
 import signale from 'signale';
 import multer from 'multer';
+import { pkgUp } from 'pkg-up';
 import typedObjectKeys from './type-utils/typedObjectKeys.js';
 
 // const VALID_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head'];
 const BODY_PARSED_METHODS = ['post', 'put', 'patch', 'delete'];
-const USE_ESM = typeof require === 'undefined';
 
 import debugLib from 'debug';
 const debug = debugLib('monck');
@@ -33,7 +34,11 @@ type MockConfig = {
 
 export type RequestConfig = Record<string, RequestHandler | Record<string, any>>;
 
-export default function getMockMiddleware(mockDir?: string, options: MockOptions = {}) {
+export function getMockMiddleware(
+  mockDir?: string,
+  options: MockOptions = {},
+  requireFn: NodeRequire = require,
+) {
   const absMockPath = resolve(process.cwd(), mockDir ?? './mocks');
   const errors: Array<Error> = [];
 
@@ -59,6 +64,7 @@ export default function getMockMiddleware(mockDir?: string, options: MockOptions
     errors.splice(0, errors.length);
 
     cleanRequireCache();
+
     let ret = {};
     const mockFiles = glob
       .sync('**/*.@(cjs|mjs|js|ts)', {
@@ -66,14 +72,22 @@ export default function getMockMiddleware(mockDir?: string, options: MockOptions
         ignore: options.ignore || [],
       })
       .map((p) => join(absMockPath, p));
-    debug(`load mock data from ${absMockPath}, including files ${JSON.stringify(mockFiles)}`);
+    debug(
+      `load mock data from ${absMockPath}, including files: ${JSON.stringify(mockFiles, null, 2)}`,
+    );
     try {
       ret = (
         await Promise.all(
           mockFiles.map(async (mockFile) => {
-            const module = await (USE_ESM
-              ? import(`${mockFile}?cache=${Math.random()}`)
-              : require(mockFile));
+            const moduleType = await getModuleType(mockFile);
+
+            debug(`Load file "${mockFile}" as "${moduleType}".`);
+            // based on the file we are loading, use either require or import
+            // even though import always works to laod the file, there is no
+            // way to clear/bust the cache when used to laod a commonjs file
+            const module = await (moduleType === 'commonjs'
+              ? requireFn(mockFile)
+              : import(`${mockFile}?cache=${Math.random()}`));
             return module.default || module;
           }),
         )
@@ -159,10 +173,10 @@ export default function getMockMiddleware(mockDir?: string, options: MockOptions
   }
 
   function cleanRequireCache() {
-    if (!USE_ESM) {
-      Object.keys(require.cache).forEach((file) => {
+    if (typeof requireFn !== 'undefined') {
+      Object.keys(requireFn.cache).forEach((file) => {
         if (file.indexOf(absMockPath) > -1) {
-          delete require.cache[file];
+          delete requireFn.cache[file];
         }
       });
     }
@@ -259,4 +273,19 @@ export default function getMockMiddleware(mockDir?: string, options: MockOptions
       return next();
     }
   };
+}
+
+async function getModuleType(file: string): Promise<'module' | 'commonjs'> {
+  // first use file extension to determine the module type
+  let moduleType = extname(file) === '.mjs' ? ('module' as const) : ('commonjs' as const);
+  // if not specified, try to load the package.json related to the file,
+  // and see if it has specified a module type
+  if (extname(file) === '.js') {
+    const filePackageJson = await pkgUp({ cwd: file });
+    if (filePackageJson) {
+      const packageJsonContent = JSON.parse(await readFile(filePackageJson, { encoding: 'utf-8' }));
+      moduleType = (packageJsonContent.type as 'module' | 'commonjs') ?? moduleType;
+    }
+  }
+  return moduleType;
 }

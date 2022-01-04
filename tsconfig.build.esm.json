@@ -8,6 +8,9 @@
     "declaration": true
   },
   "include": [
-    "src/**/*.ts"
+    "src/index-esm.ts"
+  ],
+  "exclude": [
+    "src/index-cjs.ts"
   ]
 }
