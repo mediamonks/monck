@@ -11,13 +11,13 @@
   "author": "Arjan van Wijk <thanarie@gmail.com>",
   "license": "MIT",
   "type": "module",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "main": "dist/cjs/index-cjs.js",
+  "module": "dist/esm/index-esm.js",
   "exports": {
-    "require": "./dist/cjs/index.js",
-    "import": "./dist/esm/index.js"
+    "require": "./dist/cjs/index-cjs.js",
+    "import": "./dist/esm/index-esm.js"
   },
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/esm/index-esm.d.ts",
   "files": [
     "dist",
     "bin"
@@ -57,6 +57,7 @@
     "glob": "^7.1.6",
     "multer": "^1.4.2",
     "path-to-regexp": "^6.2.0",
+    "pkg-up": "^4.0.0",
     "signale": "^1.4.0",
     "yargs": "^17.3.1"
   },
@@ -69,6 +70,7 @@
     "typescript": "^4.6.0-dev.20211214"
   },
   "engines": {
-    "npm": ">= 7.0.0"
+    "npm": ">= 7.0.0",
+    "node": ">= 14.0.0"
   }
 }

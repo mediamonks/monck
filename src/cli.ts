@@ -1,6 +1,6 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { createServer } from './index.js';
+import { createServer } from './index-esm.js';
 
 yargs(hideBin(process.argv))
   .usage('Usage: $0 [options]')
