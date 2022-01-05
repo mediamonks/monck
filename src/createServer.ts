@@ -22,10 +22,7 @@ const DEFAULT_SERVER_OPTIONS: Required<Omit<ServerOptions, 'mockDir' | 'ignore'>
   socketPath: resolve(process.cwd(), './socket'),
 };
 
-export function createServer(
-  serverOptions: ServerOptions = {},
-  requireFn: NodeRequire = require,
-): Express {
+export function createServer(serverOptions: ServerOptions = {}): Express {
   const { mountPath, mockDir, socketPath, useUnixSocket, host, port, ...middlewareOptions } = {
     ...DEFAULT_SERVER_OPTIONS,
     // clear out undefined value to not override the default options
@@ -35,7 +32,7 @@ export function createServer(
   };
 
   const app = express();
-  app.use(mountPath, getMockMiddleware(mockDir, { ...middlewareOptions, mountPath }, requireFn));
+  app.use(mountPath, getMockMiddleware(mockDir, { ...middlewareOptions, mountPath }));
 
   // return 404 response to unmatched routes under the mount path
   app.use(mountPath, (req, res) => res.sendStatus(404));

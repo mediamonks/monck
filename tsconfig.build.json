@@ -4,13 +4,10 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "target": "ES6",
-    "outDir": "./dist/esm",
+    "outDir": "./dist",
     "declaration": true
   },
   "include": [
-    "src/index-esm.ts"
-  ],
-  "exclude": [
-    "src/index-cjs.ts"
+    "src/**/*.ts"
   ]
 }

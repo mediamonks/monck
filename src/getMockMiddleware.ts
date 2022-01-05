@@ -34,11 +34,7 @@ type MockConfig = {
 
 export type RequestConfig = Record<string, RequestHandler | Record<string, any>>;
 
-export function getMockMiddleware(
-  mockDir?: string,
-  options: MockOptions = {},
-  requireFn: NodeRequire = require,
-) {
+export function getMockMiddleware(mockDir?: string, options: MockOptions = {}) {
   const absMockPath = resolve(process.cwd(), mockDir ?? './mocks');
   const errors: Array<Error> = [];
 
@@ -63,8 +59,6 @@ export function getMockMiddleware(
     // Clear errors
     errors.splice(0, errors.length);
 
-    cleanRequireCache();
-
     let ret = {};
     const mockFiles = glob
       .sync('**/*.@(cjs|mjs|js|ts)', {
@@ -79,15 +73,8 @@ export function getMockMiddleware(
       ret = (
         await Promise.all(
           mockFiles.map(async (mockFile) => {
-            const moduleType = await getModuleType(mockFile);
-
-            debug(`Load file "${mockFile}" as "${moduleType}".`);
-            // based on the file we are loading, use either require or import
-            // even though import always works to laod the file, there is no
-            // way to clear/bust the cache when used to laod a commonjs file
-            const module = await (moduleType === 'commonjs'
-              ? requireFn(mockFile)
-              : import(`${mockFile}?cache=${Math.random()}`));
+            debug(`Load file "${mockFile}"`);
+            const module = await import(`${mockFile}?cache=${Math.random()}`);
             return module.default || module;
           }),
         )
@@ -170,16 +157,6 @@ export function getMockMiddleware(
       });
       return memo;
     }, [] as Array<{ method: RequestMethod; path: string; re: RegExp; keys: Array<Key>; handler: RequestHandler }>);
-  }
-
-  function cleanRequireCache() {
-    if (typeof requireFn !== 'undefined') {
-      Object.keys(requireFn.cache).forEach((file) => {
-        if (file.indexOf(absMockPath) > -1) {
-          delete requireFn.cache[file];
-        }
-      });
-    }
   }
 
   function matchMock(req: Request, mockData: Array<MockConfig>) {
@@ -273,19 +250,4 @@ export function getMockMiddleware(
       return next();
     }
   };
-}
-
-async function getModuleType(file: string): Promise<'module' | 'commonjs'> {
-  // first use file extension to determine the module type
-  let moduleType = extname(file) === '.mjs' ? ('module' as const) : ('commonjs' as const);
-  // if not specified, try to load the package.json related to the file,
-  // and see if it has specified a module type
-  if (extname(file) === '.js') {
-    const filePackageJson = await pkgUp({ cwd: file });
-    if (filePackageJson) {
-      const packageJsonContent = JSON.parse(await readFile(filePackageJson, { encoding: 'utf-8' }));
-      moduleType = (packageJsonContent.type as 'module' | 'commonjs') ?? moduleType;
-    }
-  }
-  return moduleType;
 }

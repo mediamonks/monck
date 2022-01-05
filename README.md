@@ -2,11 +2,17 @@
 
 Add highly configurable API mocks to your express server
 
+> :warning: **Only supports ES Modules**
+>
+> This library only supports ES Modules, so your project and your mock files should as well.
+> For more information on how to configure your project as such, check
+> [this post](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
+
 ## Status
 
 This is the first iteration of this module, inspired by
 [express-mock-api-middleware](https://github.com/TechStark/express-mock-api-middleware), and 
-made compatible for esmodules.
+converted to ES Modules.
 
 Future versions will receive these additional features:
 
@@ -67,7 +73,7 @@ app.use('/api/', createMockMiddleWare('/api/', {
 }));
 
 app.listen(9002, 'localhost', () => {
-  console.info(`http://localhost:9002`);
+  console.info(`http://localhost:9002/api`);
 });
 ```
 
@@ -139,8 +145,8 @@ If you want to load TypeScript files, you need to transpile those files first, o
 something like [ts-node](https://github.com/TypeStrong/ts-node) or
 [tsm](https://github.com/lukeed/tsm) to use them during development.
 
-If you want to make use of ES modules, you need to make sure that your package.json or your file 
-extensions [are properly set up](https://nodejs.org/api/esm.html).
+Otherwise, you'd have to make use of ES modules, you need to make sure that your package.json or
+your file extensions [are properly set up](https://nodejs.org/api/esm.html).
 
 A combination of the both requires that both configurations are perfectly in sync.
 
@@ -214,5 +220,3 @@ DEBUG=monck
 
 The default setup is using esm/typescript, and can be seen by running `yarn dev`.
 
-In order to run the commonjs version (`yarn test:cjs`), the `type` field inside the `package.
-json` has to be removed first.
