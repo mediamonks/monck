@@ -1,6 +1,6 @@
 {
   "name": "@mediamonks/monck",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Add highly configurable API mocks to your express server",
   "keywords": [
     "mock",
