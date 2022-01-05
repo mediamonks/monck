@@ -34,8 +34,8 @@ type MockConfig = {
 
 export type RequestConfig = Record<string, RequestHandler | Record<string, any>>;
 
-export function getMockMiddleware(mockDir?: string, options: MockOptions = {}) {
-  const absMockPath = resolve(process.cwd(), mockDir ?? './mocks');
+export function getMockMiddleware(mockDir: string = './mocks', options: MockOptions = {}) {
+  const absMockPath = resolve(process.cwd(), mockDir);
   const errors: Array<Error> = [];
 
   let mockDataPromise = getConfig();
@@ -222,7 +222,7 @@ export function getMockMiddleware(mockDir?: string, options: MockOptions = {}) {
         <ul style="list-style-type: none; padding-left: 0;">
         ${mockData
           .map((mock) => {
-            const fullPath = `${options.mountPath}${mock.path}`;
+            const fullPath = `${options.mountPath ?? '/api'}${mock.path}`;
             const mockMethod = mock.method.toUpperCase();
             return `<li><a href="${fullPath}">
           ${mock.method === 'get' ? `<span class="badge badge-success">${mockMethod}</span>` : ''}
