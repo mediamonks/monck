@@ -24,7 +24,6 @@ export const DEFAULT_SERVER_OPTIONS: Required<Omit<ServerOptions, 'ignore'>> = {
 };
 
 export function createServer(serverOptions: ServerOptions = {}): Express {
-  console.log('serverOptions', serverOptions);
   const { mountPath, mockDir, socketPath, useUnixSocket, host, port, ...middlewareOptions } = {
     ...DEFAULT_SERVER_OPTIONS,
     // clear out undefined value to not override the default options
