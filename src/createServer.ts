@@ -15,7 +15,7 @@ export type ServerOptions = MockOptions & {
 };
 
 export const DEFAULT_SERVER_OPTIONS: Required<Omit<ServerOptions, 'ignore'>> = {
-  mountPath: '/api/',
+  mountPath: '/api',
   host: 'localhost',
   port: 9002,
   useUnixSocket: false,
@@ -24,7 +24,7 @@ export const DEFAULT_SERVER_OPTIONS: Required<Omit<ServerOptions, 'ignore'>> = {
 };
 
 export function createServer(serverOptions: ServerOptions = {}): Express {
-  const { mountPath, mockDir, socketPath, useUnixSocket, host, port, ...middlewareOptions } = {
+  const { mockDir, socketPath, useUnixSocket, host, port, ...middlewareOptions } = {
     ...DEFAULT_SERVER_OPTIONS,
     // clear out undefined value to not override the default options
     ...(Object.fromEntries(
@@ -32,8 +32,11 @@ export function createServer(serverOptions: ServerOptions = {}): Express {
     ) as ServerOptions),
   };
 
+  // remove trailing /
+  const mountPath = middlewareOptions.mountPath.replace(/\/$/, '');
+
   const app = express();
-  app.use(mountPath, getMockMiddleware(mockDir, { ...middlewareOptions, mountPath }));
+  app.use(mountPath, getMockMiddleware(mockDir, { ...middlewareOptions }));
 
   // return 404 response to unmatched routes under the mount path
   app.use(mountPath, (req, res) => res.sendStatus(404));

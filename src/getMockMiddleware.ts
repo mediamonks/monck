@@ -39,8 +39,11 @@ export function getMockMiddleware(
   mockDir: string = DEFAULT_SERVER_OPTIONS.mockDir,
   options: MockOptions = {},
 ) {
-  const absMockPath = resolve(process.cwd(), mockDir);
   const errors: Array<Error> = [];
+  const absMockPath = resolve(process.cwd(), mockDir);
+
+  // remove trailing /
+  const mountPath = options.mountPath?.replace(/\/$/, '') ?? DEFAULT_SERVER_OPTIONS.mountPath;
 
   let mockDataPromise = getConfig();
   watch();
@@ -226,7 +229,7 @@ export function getMockMiddleware(
         <ul style="list-style-type: none; padding-left: 0;">
         ${mockData
           .map((mock) => {
-            const fullPath = `${options.mountPath ?? '/api'}${mock.path}`;
+            const fullPath = `${options.mountPath ?? ''}${mock.path}`;
             const mockMethod = mock.method.toUpperCase();
             return `<li><a href="${fullPath}">
           ${mock.method === 'get' ? `<span class="badge badge-success">${mockMethod}</span>` : ''}
