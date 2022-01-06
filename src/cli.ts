@@ -57,7 +57,6 @@ yargs(hideBin(process.argv))
     describe:
       'Whether to use a unix socket to start the server instead of the default `host:port`.',
     type: 'boolean',
-    conflicts: ['host', 'port'],
   })
   .option('s', {
     alias: 'socket-path',
