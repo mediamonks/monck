@@ -1,6 +1,6 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { createServer } from './createServer.js';
+import { createServer, DEFAULT_SERVER_OPTIONS } from './createServer.js';
 
 yargs(hideBin(process.argv))
   .usage('Usage: $0 [options]')
@@ -31,22 +31,22 @@ yargs(hideBin(process.argv))
   .example('$0 -i "*.sample.js"', 'Ignore sample files in the mock folder.')
   .option('m', {
     alias: 'mount-path',
-    default: '',
+    default: DEFAULT_SERVER_OPTIONS.mountPath,
     describe:
-      'On what path the mock API should be mounted. All configured mock endpoints will be prefixed by this path',
+      'On what path the mock API should be mounted. All configured mock endpoints will be prefixed by this',
     type: 'string',
     nargs: 1,
   })
   .option('h', {
     alias: 'host',
-    default: undefined,
+    default: DEFAULT_SERVER_OPTIONS.host,
     describe: 'The host that will be used to run the server, passed to `app.listen`',
     type: 'string',
     nargs: 1,
   })
   .option('p', {
     alias: 'port',
-    default: undefined,
+    default: DEFAULT_SERVER_OPTIONS.port,
     describe: 'The port that will be used to run the server, passed to `app.listen`',
     type: 'number',
     nargs: 1,
@@ -69,7 +69,7 @@ yargs(hideBin(process.argv))
   })
   .option('d', {
     alias: 'mock-dir',
-    default: undefined,
+    default: DEFAULT_SERVER_OPTIONS.mockDir,
     describe: 'Where the mock config files can be found',
     type: 'string',
     nargs: 1,
@@ -82,11 +82,11 @@ yargs(hideBin(process.argv))
     type: 'string',
     nargs: 1,
   })
-  .group(['mount-path', 'host', 'port', 'unix-socket', 'socket-path'], 'Server:')
-  .group(['mock-dir', 'ignore'], 'Middleware:')
+  .group(['mount-path', 'host', 'port', 'unix-socket', 'socket-path'], 'Server options:')
+  .group(['mock-dir', 'ignore'], 'Middleware options:')
   .help()
   .epilogue(
-    'for more information about the parameters, please visit https://github.com/mediamonks/monck',
+    'For more information about the parameters, please visit https://github.com/mediamonks/monck',
   )
   .version(false)
   .wrap(Math.min(120, yargs(hideBin(process.argv)).terminalWidth()))

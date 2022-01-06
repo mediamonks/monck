@@ -14,15 +14,17 @@ export type ServerOptions = MockOptions & {
   mockDir?: string;
 };
 
-const DEFAULT_SERVER_OPTIONS: Required<Omit<ServerOptions, 'mockDir' | 'ignore'>> = {
+export const DEFAULT_SERVER_OPTIONS: Required<Omit<ServerOptions, 'ignore'>> = {
   mountPath: '/api/',
   host: 'localhost',
   port: 9002,
   useUnixSocket: false,
   socketPath: resolve(process.cwd(), './socket'),
+  mockDir: './mocks',
 };
 
 export function createServer(serverOptions: ServerOptions = {}): Express {
+  console.log('serverOptions', serverOptions);
   const { mountPath, mockDir, socketPath, useUnixSocket, host, port, ...middlewareOptions } = {
     ...DEFAULT_SERVER_OPTIONS,
     // clear out undefined value to not override the default options

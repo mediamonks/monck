@@ -10,6 +10,7 @@ import { Key, pathToRegexp } from 'path-to-regexp';
 import signale from 'signale';
 import multer from 'multer';
 import { pkgUp } from 'pkg-up';
+import { DEFAULT_SERVER_OPTIONS } from './createServer.js';
 import typedObjectKeys from './type-utils/typedObjectKeys.js';
 
 // const VALID_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head'];
@@ -34,7 +35,10 @@ type MockConfig = {
 
 export type RequestConfig = Record<string, RequestHandler | Record<string, any>>;
 
-export function getMockMiddleware(mockDir: string = './mocks', options: MockOptions = {}) {
+export function getMockMiddleware(
+  mockDir: string = DEFAULT_SERVER_OPTIONS.mockDir,
+  options: MockOptions = {},
+) {
   const absMockPath = resolve(process.cwd(), mockDir);
   const errors: Array<Error> = [];
 
